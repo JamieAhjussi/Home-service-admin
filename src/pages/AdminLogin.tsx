@@ -1,6 +1,37 @@
 import Image from "next/image"
+import { useState } from "react"
+import { useRouter } from "next/router"
+import { supabase } from "@/lib/supabase"
 
 export default function AdminLoginPage() {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) throw error
+
+      // Redirect to admin dashboard on success
+      router.push("/")
+    } catch (err: any) {
+      setError(err.message || "An error occurred during login")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#F6F7FB] flex flex-col items-center justify-center px-4">
       
@@ -27,8 +58,15 @@ export default function AdminLoginPage() {
           เข้าสู่ระบบแอดมิน
         </h2>
 
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded">
+            {error}
+          </div>
+        )}
+
         {/* Form */}
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           
           {/* Email */}
           <div>
@@ -37,6 +75,10 @@ export default function AdminLoginPage() {
             </label>
             <input
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="admin@example.com"
               className="w-full h-[40px] px-3 border border-[#D0D5DD] rounded-[4px] outline-none focus:border-[#336DF2] focus:ring-1 focus:ring-[#336DF2]"
             />
           </div>
@@ -48,6 +90,10 @@ export default function AdminLoginPage() {
             </label>
             <input
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="••••••••"
               className="w-full h-[40px] px-3 border border-[#D0D5DD] rounded-[4px] outline-none focus:border-[#336DF2] focus:ring-1 focus:ring-[#336DF2]"
             />
           </div>
@@ -56,9 +102,10 @@ export default function AdminLoginPage() {
           <div className="pt-4">
             <button 
               type="submit"
-              className="w-full h-[44px] bg-[#336DF2] hover:bg-[#1852D6] text-white text-[14px] font-medium rounded-[6px] transition-colors"
+              disabled={isLoading}
+              className="w-full h-[44px] bg-[#336DF2] hover:bg-[#1852D6] disabled:bg-blue-300 text-white text-[14px] font-medium rounded-[6px] transition-colors"
             >
-              เข้าสู่ระบบ
+              {isLoading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
             </button>
           </div>
 
@@ -69,4 +116,5 @@ export default function AdminLoginPage() {
     </div>
   )
 }
+
 
