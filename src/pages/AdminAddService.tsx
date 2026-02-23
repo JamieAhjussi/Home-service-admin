@@ -1,13 +1,64 @@
 import AdminLayout from "@/components/AdminLayout";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Link from "next/link";
-import { ImagePlus, GripVertical, Plus, ChevronDown } from "lucide-react";
+import { ImagePlus, GripVertical, Plus, ChevronDown, X } from "lucide-react";
 
 const AdminAddService = () => {
   const [subServices, setSubServices] = useState([
     { id: 1, name: "", price: "", unit: "" },
     { id: 2, name: "", price: "", unit: "" },
   ]);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("ไฟล์มีขนาดใหญ่เกิน 5MB");
+        return;
+      }
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("ไฟล์มีขนาดใหญ่เกิน 5MB");
+        return;
+      }
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const addSubService = () => {
     setSubServices([...subServices, { id: Date.now(), name: "", price: "", unit: "" }]);
@@ -77,16 +128,47 @@ const AdminAddService = () => {
                   รูปภาพ<span className="text-red-500">*</span>
                 </label>
                 <div className="w-full max-w-[440px] flex flex-col gap-2">
-                  <div className="w-full h-[180px] border-2 border-dashed border-gray-200 rounded-[8px] flex flex-col items-center justify-center gap-4 hover:bg-gray-50 transition-colors cursor-pointer group">
-                    <div className="text-gray-300 group-hover:text-blue-500 transition-colors">
-                      <ImagePlus size={40} strokeWidth={1} />
-                    </div>
-                    <div className="text-center">
-                      <p className="text-blue-500 text-[14px]">
-                        อัพโหลดรูปภาพ <span className="text-gray-500">หรือ ลากและวางที่นี่</span>
-                      </p>
-                      <p className="text-gray-400 text-[12px]">PNG, JPG ขนาดไม่เกิน 5MB</p>
-                    </div>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    onChange={handleImageChange}
+                    accept="image/png, image/jpeg"
+                    className="hidden"
+                  />
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={onDragOver}
+                    onDrop={onDrop}
+                    className={`w-full h-[180px] border-2 border-dashed rounded-[8px] flex flex-col items-center justify-center gap-4 transition-colors cursor-pointer group relative overflow-hidden ${
+                      imagePreview ? "border-solid border-gray-200" : "border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    {imagePreview ? (
+                      <>
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <p className="text-white font-medium">เปลี่ยนรูปภาพ</p>
+                        </div>
+                        <button 
+                          onClick={removeImage}
+                          className="absolute top-2 right-2 w-8 h-8 bg-white/80 hover:bg-white rounded-full flex items-center justify-center text-gray-500 hover:text-red-500 shadow-sm transition-all"
+                        >
+                          <X size={18} />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-gray-300 group-hover:text-blue-500 transition-colors">
+                          <ImagePlus size={40} strokeWidth={1} />
+                        </div>
+                        <div className="text-center px-4">
+                          <p className="text-blue-500 text-[14px]">
+                            อัพโหลดรูปภาพ <span className="text-gray-500">หรือ ลากและวางที่นี่</span>
+                          </p>
+                          <p className="text-gray-400 text-[12px]">PNG, JPG ขนาดไม่เกิน 5MB</p>
+                        </div>
+                      </>
+                    )}
                   </div>
                   <p className="text-gray-400 text-[12px]">ขนาดภาพที่แนะนำ: 1440 x 225 PX</p>
                 </div>

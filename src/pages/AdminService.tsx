@@ -1,6 +1,7 @@
 import AdminLayout from "@/components/AdminLayout";
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { Search, Plus, GripVertical, Trash2, Edit3, AlertCircle, X } from "lucide-react";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 
@@ -13,6 +14,7 @@ interface Service {
 }
 
 const AdminService = () => {
+  const router = useRouter();
   const [services, setServices] = useState<Service[]>([
     { id: "1", name: "ล้างแอร์", category: "บริการทั่วไป", createdAt: "12/02/2022 10:30PM", lastModified: "12/02/2022 10:30PM" },
     { id: "2", name: "ติดตั้งแอร์", category: "บริการทั่วไป", createdAt: "12/02/2022 10:30PM", lastModified: "12/02/2022 10:30PM" },
@@ -112,18 +114,19 @@ const AdminService = () => {
                             <tr 
                               ref={provided.innerRef}
                               {...provided.draggableProps}
-                              className={`border-t border-gray-100 group transition-colors ${snapshot.isDragging ? "bg-blue-50" : "bg-white hover:bg-gray-50"}`}
+                              onClick={() => router.push('/AdminServiceDetail')}
+                              className={`border-t border-gray-100 group transition-colors cursor-pointer ${snapshot.isDragging ? "bg-blue-50" : "bg-white hover:bg-gray-50"}`}
                             >
-                              <td className="py-6 px-6">
+                              <td className="py-6 px-6" onClick={(e) => e.stopPropagation()}>
                                 <div {...provided.dragHandleProps}>
                                   <GripVertical size={20} className="text-[#CCD0D7] cursor-grab active:cursor-grabbing" />
                                 </div>
                               </td>
                               <td className="py-6 px-6">{index + 1}</td>
                               <td className="py-6 px-6">
-                                <Link href="/AdminServiceDetail" className="hover:underline cursor-pointer">
+                                <span className="group-hover:underline">
                                   {service.name}
-                                </Link>
+                                </span>
                               </td>
                               <td className="py-6 px-6">
                                 <span className={`px-3 py-1 rounded-[10px] text-[12px] font-medium ${getCategoryBadgeClass(service.category)}`}>
@@ -132,7 +135,7 @@ const AdminService = () => {
                               </td>
                               <td className="py-6 px-6 text-gray-500">{service.createdAt}</td>
                               <td className="py-6 px-6 text-gray-500">{service.lastModified}</td>
-                              <td className="py-6 px-6">
+                              <td className="py-6 px-6" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex items-center justify-center gap-6">
                                   <button onClick={() => openDeleteModal(service)} className="text-[#C82438] hover:opacity-75 cursor-pointer">
                                     <Trash2 size={24} strokeWidth={1} />

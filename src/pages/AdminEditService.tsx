@@ -1,5 +1,5 @@
 import AdminLayout from "@/components/AdminLayout";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { 
@@ -9,7 +9,8 @@ import {
   GripVertical, 
   ChevronDown, 
   AlertCircle, 
-  X 
+  X,
+  ImagePlus
 } from "lucide-react";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import Image from "next/image";
@@ -31,6 +32,58 @@ const AdminEditService = () => {
     { id: "3", name: "9,000 - 18,000 BTU, แบบติดผนัง", unit: "เครื่อง", price: "800.00" },
     { id: "4", name: "9,000 - 18,000 BTU, แบบติดผนัง", unit: "เครื่อง", price: "800.00" },
   ]);
+
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>("https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=1000&auto=format&fit=crop");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("ไฟล์มีขนาดใหญ่เกิน 5MB");
+        return;
+      }
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("ไฟล์มีขนาดใหญ่เกิน 5MB");
+        return;
+      }
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -127,18 +180,58 @@ const AdminEditService = () => {
                   รูปภาพ<span className="text-red-500">*</span>
                 </label>
                 <div className="w-full max-w-[440px] space-y-2">
-                   <div className="relative w-full h-[225px] border border-gray-200 rounded-[8px] overflow-hidden">
-                      <Image 
-                        src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=1000&auto=format&fit=crop" 
-                        alt="Service Image"
-                        fill
-                        className="object-cover"
-                      />
-                   </div>
-                   <div className="flex justify-between items-center text-[12px]">
-                      <span className="text-gray-400">ขนาดภาพที่แนะนำ: 1440 x 225 PX</span>
-                      <button className="text-blue-600 underline font-medium hover:text-blue-800 transition-colors">ลบรูปภาพ</button>
-                   </div>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    onChange={handleImageChange}
+                    accept="image/png, image/jpeg"
+                    className="hidden"
+                  />
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={onDragOver}
+                    onDrop={onDrop}
+                    className={`relative w-full h-[225px] border-2 border-dashed rounded-[8px] overflow-hidden transition-colors cursor-pointer group flex flex-col items-center justify-center gap-4 ${
+                      imagePreview ? "border-solid border-gray-200" : "border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    {imagePreview ? (
+                      <>
+                        <Image 
+                          src={imagePreview} 
+                          alt="Service Image"
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <p className="text-white font-medium">เปลี่ยนรูปภาพ</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-gray-300 group-hover:text-blue-500 transition-colors">
+                          <ImagePlus size={40} strokeWidth={1} />
+                        </div>
+                        <div className="text-center px-4">
+                          <p className="text-blue-500 text-[14px]">
+                            อัพโหลดรูปภาพ <span className="text-gray-500">หรือ ลากและวางที่นี่</span>
+                          </p>
+                          <p className="text-gray-400 text-[12px]">PNG, JPG ขนาดไม่เกิน 5MB</p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-center text-[12px]">
+                    <span className="text-gray-400">ขนาดภาพที่แนะนำ: 1440 x 225 PX</span>
+                    {imagePreview && (
+                      <button 
+                        onClick={removeImage}
+                        className="text-blue-600 underline font-medium hover:text-blue-800 transition-colors"
+                      >
+                        ลบรูปภาพ
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
