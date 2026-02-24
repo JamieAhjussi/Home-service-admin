@@ -1,5 +1,5 @@
 import AdminLayout from "@/components/AdminLayout";
-import React, { useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { 
@@ -77,12 +77,12 @@ const AdminEditService = () => {
           <div className="flex items-center gap-4">
             <Link 
               href="/AdminService"
-              className="px-8 py-2 border border-blue-600 text-blue-600 rounded-[8px] font-medium hover:bg-blue-50 transition-colors text-[16px]"
+              className="px-8 py-2 border border-blue-600 text-blue-600 rounded-md font-medium hover:bg-blue-50 transition-colors text-[16px]"
             >
               ยกเลิก
             </Link>
             <button 
-              className="px-10 py-2 bg-[#336DF2] hover:bg-blue-600 text-white rounded-[8px] font-medium transition-colors text-[16px]"
+              className="px-10 py-2 bg-[#336DF2] hover:bg-blue-600 text-white rounded-md font-medium transition-colors text-[16px]"
             >
               ยืนยัน
             </button>
@@ -91,28 +91,28 @@ const AdminEditService = () => {
 
         {/* Content Section */}
         <main className="p-10 pb-20">
-          <div className="bg-white rounded-[10px] border border-gray-200 p-10 shadow-sm space-y-10">
+          <div className="bg-white rounded-lg border border-gray-200 p-10 shadow-sm space-y-10">
             {/* Main Form Fields */}
             <div className="space-y-8">
               <div className="flex items-center gap-10">
-                <label className="text-[#646C80] text-[16px] w-[140px]">
+                <label className="text-[#646C80] text-[16px] w-35">
                   ชื่อบริการ<span className="text-red-500">*</span>
                 </label>
                 <input 
                   type="text" 
                   defaultValue={serviceName}
-                  className="w-full max-w-[440px] h-[44px] px-4 border border-gray-300 rounded-[8px] outline-none focus:border-blue-500 transition-colors"
+                  className="w-full max-w-110 h-11 px-4 border border-gray-300 rounded-md outline-none focus:border-blue-500 transition-colors"
                 />
               </div>
 
               <div className="flex items-center gap-10">
-                <label className="text-[#646C80] text-[16px] w-[140px]">
+                <label className="text-[#646C80] text-[16px] w-35">
                   หมวดหมู่<span className="text-red-500">*</span>
                 </label>
-                <div className="relative w-full max-w-[440px]">
+                <div className="relative w-full max-w-110">
                   <select 
                     defaultValue="1"
-                    className="w-full h-[44px] px-4 border border-gray-300 rounded-[8px] outline-none focus:border-blue-500 appearance-none bg-white cursor-pointer"
+                    className="w-full h-11 px-4 border border-gray-300 rounded-md outline-none focus:border-blue-500 appearance-none bg-white cursor-pointer"
                   >
                     <option value="1">บริการทั่วไป</option>
                     <option value="2">บริการห้องครัว</option>
@@ -123,11 +123,11 @@ const AdminEditService = () => {
               </div>
 
               <div className="flex items-start gap-10">
-                <label className="text-[#646C80] text-[16px] w-[140px] pt-4">
+                <label className="text-[#646C80] text-[16px] w-35 pt-4">
                   รูปภาพ<span className="text-red-500">*</span>
                 </label>
-                <div className="w-full max-w-[440px] space-y-2">
-                   <div className="relative w-full h-[225px] border border-gray-200 rounded-[8px] overflow-hidden">
+                <div className="w-full max-w-110 space-y-2">
+                   <div className="relative w-full h-56.25 border border-gray-200 rounded-md overflow-hidden">
                       <Image 
                         src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=1000&auto=format&fit=crop" 
                         alt="Service Image"
@@ -175,7 +175,7 @@ const AdminEditService = () => {
                                   <input 
                                     type="text" 
                                     defaultValue={item.name}
-                                    className="w-full h-[44px] px-4 border border-gray-300 rounded-[8px] outline-none focus:border-blue-500"
+                                    className="w-full h-11 px-4 border border-gray-300 rounded-md outline-none focus:border-blue-500"
                                   />
                                 </div>
                                 <div className="space-y-2">
@@ -183,7 +183,7 @@ const AdminEditService = () => {
                                   <input 
                                     type="text" 
                                     defaultValue={item.unit}
-                                    className="w-full h-[44px] px-4 border border-gray-300 rounded-[8px] outline-none focus:border-blue-500"
+                                    className="w-full h-11 px-4 border border-gray-300 rounded-md outline-none focus:border-blue-500"
                                   />
                                 </div>
                                 <div className="space-y-2">
@@ -192,7 +192,7 @@ const AdminEditService = () => {
                                     <input 
                                       type="text" 
                                       defaultValue={item.price}
-                                      className="w-full h-[44px] px-4 border border-gray-300 rounded-[8px] outline-none focus:border-blue-500 pr-10"
+                                      className="w-full h-11 px-4 border border-gray-300 rounded-md outline-none focus:border-blue-500 pr-10"
                                     />
                                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">฿</span>
                                   </div>
@@ -221,7 +221,7 @@ const AdminEditService = () => {
 
               <button 
                 onClick={addSubService}
-                className="mt-6 px-10 py-2 border border-blue-600 text-blue-600 rounded-[8px] font-medium hover:bg-blue-50 transition-colors flex items-center gap-2"
+                className="mt-6 px-10 py-2 border border-blue-600 text-blue-600 rounded-md font-medium hover:bg-blue-50 transition-colors flex items-center gap-2"
               >
                 เพิ่มรายการ <Plus size={20} />
               </button>
@@ -232,11 +232,11 @@ const AdminEditService = () => {
             {/* Timestamps */}
             <div className="space-y-6">
                <div className="flex items-center gap-10">
-                  <span className="text-[#646C80] text-[16px] w-[140px]">สร้างเมื่อ</span>
+                  <span className="text-[#646C80] text-[16px] w-35">สร้างเมื่อ</span>
                   <span className="text-black text-[16px]">12/02/2022 10:30PM</span>
                </div>
                <div className="flex items-center gap-10">
-                  <span className="text-[#646C80] text-[16px] w-[140px]">แก้ไขล่าสุด</span>
+                  <span className="text-[#646C80] text-[16px] w-35">แก้ไขล่าสุด</span>
                   <span className="text-black text-[16px]">12/02/2022 10:30PM</span>
                </div>
             </div>
@@ -257,7 +257,7 @@ const AdminEditService = () => {
         {/* Delete Confirmation Modal */}
         {isDeleteModalOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-[16px] py-8 px-12 max-w-[420px] w-full relative flex flex-col items-center text-center shadow-xl animate-in fade-in zoom-in duration-200">
+            <div className="bg-white rounded-[16px] py-8 px-12 max-w-105 w-full relative flex flex-col items-center text-center shadow-xl animate-in fade-in zoom-in duration-200">
               <button 
                 onClick={() => setIsDeleteModalOpen(false)}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
@@ -265,7 +265,7 @@ const AdminEditService = () => {
                 <X size={24} />
               </button>
 
-              <div className="w-[60px] h-[60px] bg-[#C82438] rounded-full flex items-center justify-center mb-6">
+              <div className="w-15 h-15 bg-[#C82438] rounded-full flex items-center justify-center mb-6">
                 <AlertCircle size={32} className="text-white" />
               </div>
 
@@ -280,13 +280,13 @@ const AdminEditService = () => {
               <div className="flex items-center gap-4 w-full">
                 <button 
                   onClick={handleConfirmDelete}
-                  className="flex-1 h-[44px] bg-[#336DF2] hover:bg-blue-600 text-white rounded-[8px] font-medium transition-colors"
+                  className="flex-1 h-11 bg-[#336DF2] hover:bg-blue-600 text-white rounded-md font-medium transition-colors"
                 >
                   ลบรายการ
                 </button>
                 <button 
                   onClick={() => setIsDeleteModalOpen(false)}
-                  className="flex-1 h-[44px] border border-blue-600 text-blue-600 rounded-[8px] font-medium hover:bg-blue-50 transition-colors"
+                  className="flex-1 h-11 border border-blue-600 text-blue-600 rounded-md font-medium hover:bg-blue-50 transition-colors"
                 >
                   ยกเลิก
                 </button>

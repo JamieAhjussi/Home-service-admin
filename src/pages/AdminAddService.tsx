@@ -1,5 +1,5 @@
 import AdminLayout from "@/components/AdminLayout";
-import React, { useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ImagePlus, GripVertical, Plus, ChevronDown } from "lucide-react";
 
@@ -27,12 +27,12 @@ const AdminAddService = () => {
           <div className="flex items-center gap-4">
             <Link 
               href="/AdminService"
-              className="px-8 py-2 border border-blue-600 text-blue-600 rounded-[8px] font-medium hover:bg-blue-50 transition-colors"
+              className="px-8 py-2 border border-blue-600 text-blue-600 rounded-md font-medium hover:bg-blue-50 transition-colors"
             >
               ยกเลิก
             </Link>
             <button 
-              className="px-10 py-2 bg-[#336DF2] hover:bg-blue-600 text-white rounded-[8px] font-medium transition-colors"
+              className="px-10 py-2 bg-[#336DF2] hover:bg-blue-600 text-white rounded-md font-medium transition-colors"
             >
               สร้าง
             </button>
@@ -41,7 +41,7 @@ const AdminAddService = () => {
 
         {/* Content Section */}
         <main className="p-10 space-y-10">
-          <div className="bg-white rounded-[10px] border border-gray-200 p-10 shadow-sm space-y-10">
+          <div className="bg-white rounded-md border border-gray-200 p-10 shadow-sm space-y-10">
             {/* Top Fields */}
             <div className="space-y-8">
               {/* Service Name */}
