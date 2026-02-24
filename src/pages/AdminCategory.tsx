@@ -1,26 +1,67 @@
 import AdminLayout from "@/components/AdminLayout";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Plus, GripVertical, Trash2, Edit3, AlertCircle, X } from "lucide-react";
+import { Search, Plus, GripVertical, Trash2, Edit3, AlertCircle, X, Loader2 } from "lucide-react";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import axios from "@/lib/axios";
 
 interface Category {
   id: string;
   name: string;
-  createdAt: string;
-  lastModified: string;
+  created_at?: string;
+  updated_at?: string;
+  // Fallback for UI display
+  createdAt?: string;
+  lastModified?: string;
 }
 
 const AdminCategory = () => {
-  const [categories, setCategories] = useState<Category[]>([
-    { id: "1", name: "บริการทั่วไป", createdAt: "12/02/2022 10:30PM", lastModified: "12/02/2022 10:30PM" },
-    { id: "2", name: "บริการห้องครัว", createdAt: "12/02/2022 10:30PM", lastModified: "12/02/2022 10:30PM" },
-    { id: "3", name: "บริการห้องน้ำ", createdAt: "12/02/2022 10:30PM", lastModified: "12/02/2022 10:30PM" },
-    { id: "4", name: "บริการห้องนอน", createdAt: "12/02/2022 10:30PM", lastModified: "12/02/2022 10:30PM" }
-  ]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+
+  // Derived filtered categories
+  const filteredCategories = categories.filter((cat) =>
+    cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Fetch categories from server
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get("/categories");
+      setCategories(response.data);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to fetch categories:", err);
+      setError("ไม่สามารถดึงข้อมูลหมวดหมู่ได้ โปรดลองอีกครั้ง");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Confirm Delete
+  const confirmDelete = async () => {
+    if (categoryToDelete) {
+      try {
+        await axios.delete(`/categories/${categoryToDelete.id}`);
+        setCategories(categories.filter((cat) => cat.id !== categoryToDelete.id));
+        setIsDeleteModalOpen(false);
+        setCategoryToDelete(null);
+      } catch (err) {
+        console.error("Failed to delete category:", err);
+        alert("ไม่สามารถลบรายการได้");
+      }
+    }
+  };
 
   // Handle Drag and Drop
   const onDragEnd = (result: DropResult) => {
@@ -40,13 +81,7 @@ const AdminCategory = () => {
   };
 
   // Confirm Delete
-  const confirmDelete = () => {
-    if (categoryToDelete) {
-      setCategories(categories.filter((cat) => cat.id !== categoryToDelete.id));
-      setIsDeleteModalOpen(false);
-      setCategoryToDelete(null);
-    }
-  };
+  // Moved inside useEffect or handled separately
 
   return (
     <AdminLayout>
@@ -61,8 +96,18 @@ const AdminCategory = () => {
               <input 
                 type="text" 
                 placeholder="ค้นหาหมวดหมู่..."
-                className="w-full h-[44px] pl-10 pr-4 border border-gray-300 rounded-[8px] outline-none focus:border-blue-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full h-[44px] pl-10 pr-4 border border-gray-300 rounded-[8px] outline-none focus:border-blue-500 transition-colors"
               />
+              {searchTerm && (
+                <button 
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              )}
             </div>
             <Link href="/AdminAddCategory">
               <button className="bg-[#336DF2] hover:bg-blue-600 text-white h-[44px] px-6 rounded-[8px] flex items-center gap-2 font-medium transition-colors cursor-pointer">
@@ -94,48 +139,71 @@ const AdminCategory = () => {
                       {...provided.droppableProps}
                       ref={provided.innerRef}
                     >
-                      {categories.map((cat, index) => (
-                        <Draggable key={cat.id} draggableId={cat.id} index={index}>
-                          {(provided, snapshot) => (
-                            <tr 
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              className={`border-t border-gray-100 group transition-colors relative ${snapshot.isDragging ? "bg-blue-50" : "bg-white hover:bg-gray-50"}`}
-                            >
-                              <td className="py-6 px-6 relative">
-                                <div className="flex items-center gap-6">
-                                  <div {...provided.dragHandleProps}>
-                                    <GripVertical size={20} className="text-[#CCD0D7] cursor-grab active:cursor-grabbing" />
+                      {isLoading ? (
+                        <tr>
+                          <td colSpan={6} className="py-20 text-center">
+                            <div className="flex flex-col items-center gap-4">
+                              <Loader2 className="animate-spin text-blue-500" size={40} />
+                              <p className="text-gray-500">กำลังโหลดข้อมูล...</p>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : error ? (
+                        <tr>
+                          <td colSpan={6} className="py-20 text-center text-red-500">
+                            {error}
+                          </td>
+                        </tr>
+                      ) : filteredCategories.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="py-20 text-center text-gray-500">
+                            {searchTerm ? `ไม่พบหมวดหมู่ที่ตรงกับ "${searchTerm}"` : "ไม่พบข้อมูลหมวดหมู่"}
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredCategories.map((cat, index) => (
+                          <Draggable key={cat.id} draggableId={cat.id.toString()} index={index}>
+                            {(provided, snapshot) => (
+                              <tr 
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                className={`border-t border-gray-100 group transition-colors relative ${snapshot.isDragging ? "bg-blue-50" : "bg-white hover:bg-gray-50"}`}
+                              >
+                                <td className="py-6 px-6 relative">
+                                  <div className="flex items-center gap-6">
+                                    <div {...provided.dragHandleProps}>
+                                      <GripVertical size={20} className="text-[#CCD0D7] cursor-grab active:cursor-grabbing" />
+                                    </div>
                                   </div>
-                                </div>
-                              </td>
-                              <td className="py-6 px-6 text-[16px]">{index + 1}</td>
-                              <td className="py-6 px-6 text-[16px]">
-                                <Link href="/AdminCategoryDetail" className="hover:underline cursor-pointer">
-                                  {cat.name}
-                                </Link>
-                              </td>
-                              <td className="py-6 px-6 text-[16px] text-gray-500">{cat.createdAt}</td>
-                              <td className="py-6 px-6 text-[16px] text-gray-500">{cat.lastModified}</td>
-                              <td className="py-6 px-6">
-                                <div className="flex items-center justify-center gap-6">
-                                  <button 
-                                    onClick={() => openDeleteModal(cat)}
-                                    className="text-[#C82438] hover:opacity-75 transition-opacity cursor-pointer"
-                                  >
-                                    <Trash2 size={24} strokeWidth={1} />
-                                  </button>
-                                  <Link href="/AdminEditCategory">
-                                    <button className="text-[#336DF2] hover:opacity-75 transition-opacity cursor-pointer">
-                                      <Edit3 size={24} strokeWidth={1} />
-                                    </button>
+                                </td>
+                                <td className="py-6 px-6 text-[16px]">{index + 1}</td>
+                                <td className="py-6 px-6 text-[16px]">
+                                  <Link href={`/AdminCategoryDetail?id=${cat.id}`} className="hover:underline cursor-pointer">
+                                    {cat.name}
                                   </Link>
-                                </div>
-                              </td>
-                            </tr>
-                          )}
-                        </Draggable>
-                      ))}
+                                </td>
+                                <td className="py-6 px-6 text-[16px] text-gray-500">{new Date(cat.created_at || "").toLocaleString('th-TH') || cat.createdAt}</td>
+                                <td className="py-6 px-6 text-[16px] text-gray-500">{new Date(cat.updated_at || "").toLocaleString('th-TH') || cat.lastModified}</td>
+                                <td className="py-6 px-6">
+                                  <div className="flex items-center justify-center gap-6">
+                                    <button 
+                                      onClick={() => openDeleteModal(cat)}
+                                      className="text-[#C82438] hover:opacity-75 transition-opacity cursor-pointer"
+                                    >
+                                      <Trash2 size={24} strokeWidth={1} />
+                                    </button>
+                                    <Link href={`/AdminEditCategory?id=${cat.id}`}>
+                                      <button className="text-[#336DF2] hover:opacity-75 transition-opacity cursor-pointer">
+                                        <Edit3 size={24} strokeWidth={1} />
+                                      </button>
+                                    </Link>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </Draggable>
+                        ))
+                      )}
                       {provided.placeholder}
                     </tbody>
                   )}
