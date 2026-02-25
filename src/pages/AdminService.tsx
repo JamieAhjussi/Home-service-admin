@@ -1,5 +1,5 @@
 import AdminLayout from "@/components/AdminLayout";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -17,11 +17,12 @@ import {
   DropResult,
 } from "@hello-pangea/dnd";
 import axios from "axios";
-import { getCategoryColor } from "@/types/CategoryColors"; // Req3: import สีตาม category
+import { getCategoryColor } from "@/types/CategoryColors";
 import { formatDate } from "@/lib/formatDate";
+import { useRouter } from "next/router";
 
 interface Service {
-  id: number; // ✅ Req2: เก็บ id จริงเป็น number
+  id: number;
   name: string;
   category_id: number;
   category_name: string;
@@ -30,26 +31,47 @@ interface Service {
   updated_at: string;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 const AdminService = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
+  const [searchKeyword, setSearchKeyword] = useState("");
 
-  // Req1: fetch services ตอน mount
-  const fetchServices = async () => {
+  const router = useRouter();
+  // ใช้ useRef แทน useState เพราะไม่ต้องการให้ component re-render เมื่อ timer เปลี่ยน
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const fetchServices = useCallback(async (keyword: string = "") => {
     try {
-      const response = await axios.get("http://localhost:4000/api/services");
+      const response = await axios.get(`${API_URL}/api/services`, {
+        params: keyword ? { search: keyword } : {},
+      });
       setServices(response.data);
     } catch (error) {
       console.error("Error fetching services:", error);
     }
-  };
-
-  useEffect(() => {
-    fetchServices();
   }, []);
 
-  // Req2: drag & drop — ใช้ index เป็น key แทน id เพราะ draggableId ต้องเป็น string ที่ unique
+  useEffect(() => {
+    fetchServices("");
+  }, [fetchServices]);
+
+  // ใช้ debounce 400ms เพื่อไม่ให้ fetch ทุกครั้งที่กดแป้นพิมพ์
+  const handleSearch = (value: string) => {
+    setSearchKeyword(value);
+
+    // ยกเลิก timer เดิมถ้ายังไม่หมดเวลา (user ยังพิมพ์อยู่)
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+
+    // ตั้ง timer ใหม่ → fetch หลังจาก user หยุดพิมพ์ 400ms
+    debounceTimer.current = setTimeout(() => {
+      fetchServices(value);
+    }, 400);
+  };
+
+  // drag & drop — ใช้ index เป็น key แทน id เพราะ draggableId ต้องเป็น string ที่ unique
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
     if (result.destination.index === result.source.index) return; // ไม่ขยับ ไม่ต้องทำอะไร
@@ -68,9 +90,7 @@ const AdminService = () => {
   const confirmDelete = async () => {
     if (!serviceToDelete) return;
     try {
-      await axios.delete(
-        `http://localhost:4000/api/services/${serviceToDelete.id}`,
-      );
+      await axios.delete(`${API_URL}/api/services/${serviceToDelete.id}`);
       setServices(services.filter((s) => s.id !== serviceToDelete.id));
     } catch (error) {
       console.error("Error deleting service:", error);
@@ -95,6 +115,8 @@ const AdminService = () => {
                 type="text"
                 placeholder="ค้นหาบริการ..."
                 className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-md outline-none focus:border-blue-500"
+                value={searchKeyword}
+                onChange={(e) => handleSearch(e.target.value)}
               />
             </div>
             <Link href="/AdminAddService">
@@ -105,7 +127,7 @@ const AdminService = () => {
           </div>
         </header>
 
-        <main className="p-10">
+        <main className="p-10 font-prompt">
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -120,7 +142,7 @@ const AdminService = () => {
                 </tr>
               </thead>
 
-              {/* Req2: DragDropContext ต้องครอบ Droppable และ Draggable */}
+              {/* DragDropContext ต้องครอบ Droppable และ Draggable */}
               <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable droppableId="services-list">
                   {(provided) => (
@@ -130,11 +152,11 @@ const AdminService = () => {
                       {...provided.droppableProps}
                     >
                       {services.map((service, index) => {
-                        // Req3: ดึงสีตาม category_name (EN)
+                        // ดึงสีตาม category_name (EN)
                         const color = getCategoryColor(service.category_name);
 
                         return (
-                          // Req2: draggableId ต้องเป็น string ที่ unique → แปลง id เป็น string
+                          // draggableId ต้องเป็น string ที่ unique → แปลง id เป็น string
                           <Draggable
                             key={String(service.id)}
                             draggableId={String(service.id)}
@@ -164,7 +186,7 @@ const AdminService = () => {
 
                                 <td className="py-6 px-6">
                                   <Link
-                                    href="/AdminServiceDetail"
+                                    href={`/AdminServiceDetail?id=${service.id}`}
                                     className="hover:underline cursor-pointer"
                                   >
                                     {service.name}
@@ -195,11 +217,17 @@ const AdminService = () => {
                                     >
                                       <Trash2 size={24} strokeWidth={1} />
                                     </button>
-                                    <Link href="/AdminEditService">
-                                      <button className="text-[#336DF2] hover:opacity-75 cursor-pointer">
-                                        <Edit3 size={24} strokeWidth={1} />
-                                      </button>
-                                    </Link>
+
+                                    <button
+                                      onClick={() =>
+                                        router.push(
+                                          `/AdminEditService?id=${service.id}`,
+                                        )
+                                      }
+                                      className="text-[#336DF2] hover:opacity-75 cursor-pointer"
+                                    >
+                                      <Edit3 size={24} strokeWidth={1} />
+                                    </button>
                                   </div>
                                 </td>
                               </tr>
