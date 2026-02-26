@@ -1,6 +1,8 @@
 import { useAuth } from "@/contexts/AuthContext";
 import AdminLoginPage from "./AdminLogin";
 import { supabase } from "@/lib/supabase";
+import AdminCategory from "./AdminCategory";
+
 
 export default function Home() {
   const { user, loading } = useAuth();
