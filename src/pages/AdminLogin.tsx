@@ -15,17 +15,28 @@ export default function AdminLoginPage() {
     setIsLoading(true)
     setError(null)
 
+    const trimmedEmail = email.trim()
+    const passwordValue = password // Don't trim passwords as they can contain spaces
+
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      console.log("Attempting login for:", trimmedEmail)
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: trimmedEmail,
+        password: passwordValue,
       })
 
-      if (error) throw error
+      if (error) {
+        console.error("Login error:", error)
+        setError(error.message)
+        setIsLoading(false)
+        return
+      }
 
+      console.log("Login successful:", data.user?.email)
       // Redirect to admin dashboard on success
       router.push("/")
     } catch (err: any) {
+      console.error("Catch error:", err)
       setError(err.message || "An error occurred during login")
     } finally {
       setIsLoading(false)
