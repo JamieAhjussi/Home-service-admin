@@ -2,6 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import AdminLoginPage from "./AdminLogin";
 import { supabase } from "@/lib/supabase";
 import AdminCategory from "./AdminCategory";
+import Link from "next/link";
 
 
 export default function Home() {
@@ -45,9 +46,11 @@ export default function Home() {
             <p className="text-gray-600 mb-4">คุณสามารถเพิ่ม แก้ไข และลบข้อมูลหมวดหมู่และบริการได้ที่หน้าแอดมิน</p>
             {/* We will add links here as more pages are developed */}
             <div className="flex gap-4">
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                เข้าสู่หน้าจัดการ
-              </button>
+              <Link href="/AdminService">
+                <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer">
+                  เข้าสู่หน้าจัดการ
+                </button>
+              </Link>
             </div>
           </div>
         </div>

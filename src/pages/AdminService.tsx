@@ -16,7 +16,7 @@ import {
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
-import axios from "axios";
+import axios from "@/lib/axios";
 import { getCategoryColor } from "@/types/CategoryColors";
 import { formatDate } from "@/lib/formatDate";
 import { useRouter } from "next/router";
@@ -31,7 +31,7 @@ interface Service {
   updated_at: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// ใช้ axios instance จาก @/lib/axios แทนการกำหนด API_URL เอง
 
 const AdminService = () => {
   const [services, setServices] = useState<Service[]>([]);
@@ -45,7 +45,7 @@ const AdminService = () => {
 
   const fetchServices = useCallback(async (keyword: string = "") => {
     try {
-      const response = await axios.get(`${API_URL}/api/services`, {
+      const response = await axios.get("/services", {
         params: keyword ? { search: keyword } : {},
       });
       setServices(response.data);
@@ -90,7 +90,7 @@ const AdminService = () => {
   const confirmDelete = async () => {
     if (!serviceToDelete) return;
     try {
-      await axios.delete(`${API_URL}/api/services/${serviceToDelete.id}`);
+      await axios.delete(`/services/${serviceToDelete.id}`);
       setServices(services.filter((s) => s.id !== serviceToDelete.id));
     } catch (error) {
       console.error("Error deleting service:", error);

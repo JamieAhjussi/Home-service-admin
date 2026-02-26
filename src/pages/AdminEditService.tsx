@@ -19,9 +19,9 @@ import {
   DropResult,
 } from "@hello-pangea/dnd";
 import Image from "next/image";
-import axios from "axios";
+import axios from "@/lib/axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// ใช้ axios instance จาก @/lib/axios แทนการกำหนด API_URL เอง
 
 // ✨ เพิ่มใหม่: Types
 interface Category {
@@ -72,8 +72,8 @@ const AdminEditService = () => {
       try {
         // fetch พร้อมกัน 2 request ด้วย Promise.all เพื่อประหยัดเวลา
         const [serviceRes, categoriesRes] = await Promise.all([
-          axios.get(`${API_URL}/api/services/${id}`),
-          axios.get<Category[]>(`${API_URL}/api/categories`),
+          axios.get(`/services/${id}`),
+          axios.get<Category[]>("/categories"),
         ]);
 
         const service = serviceRes.data;
@@ -219,7 +219,7 @@ const AdminEditService = () => {
 
     try {
       setIsSubmitting(true);
-      await axios.put(`${API_URL}/api/services/${id}`, formData, {
+      await axios.put(`/services/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       router.push("/AdminService");
@@ -234,7 +234,7 @@ const AdminEditService = () => {
   // ── Handler: ลบ service ──────────────────────────────────────────────
   const handleConfirmDelete = async () => {
     try {
-      await axios.delete(`${API_URL}/api/services/${id}`);
+      await axios.delete(`/services/${id}`);
       setIsDeleteModalOpen(false);
       router.push("/AdminService");
     } catch (error) {

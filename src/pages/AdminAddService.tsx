@@ -2,11 +2,11 @@ import AdminLayout from "@/components/AdminLayout";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ImagePlus, GripVertical, Plus, ChevronDown } from "lucide-react";
-import axios from "axios";
+import axios from "@/lib/axios";
 import { Loader2 } from "lucide-react";
 
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// ใช้ axios instance จาก @/lib/axios แทนการกำหนด API_URL เอง
 
 // Type สำหรับ Category ที่ดึงมาจาก API
 interface Category {
@@ -43,7 +43,7 @@ const AdminAddService = () => {
     const fetchCategories = async () => {
       try {
         const { data } = await axios.get<Category[]>(
-          `${API_URL}/api/categories`,
+          "/categories",
         );
         setCategories(data);
       } catch (error) {
@@ -148,7 +148,7 @@ const AdminAddService = () => {
 
     try {
       setIsSubmitting(true);
-      await axios.post(`${API_URL}/api/services`, formData, {
+      await axios.post("/services", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

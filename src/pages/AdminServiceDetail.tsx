@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { ChevronLeft } from "lucide-react";
 import Image from "next/image";
-import axios from "axios";
+import axios from "@/lib/axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// ใช้ axios instance จาก @/lib/axios แทนการกำหนด API_URL เอง
 
 interface SubServiceItem {
   id: number;
@@ -37,7 +37,7 @@ const AdminServiceDetail = () => {
     const fetchService = async () => {
       setIsLoading(true);
       try {
-        const { data } = await axios.get(`${API_URL}/api/services/${id}`);
+        const { data } = await axios.get(`/services/${id}`);
         setService(data);
       } catch (err) {
         setError("ไม่สามารถโหลดข้อมูลบริการได้");
