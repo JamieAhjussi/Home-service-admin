@@ -55,7 +55,7 @@ const EditPromotionModal: React.FC<EditModalProps> = ({ isOpen, onClose, promo, 
 
     try {
       // ยิง API ไปอัปเดตข้อมูล
-      await axios.put(`/api/promotions/${promo.id}`, {
+      await axios.put(`http://localhost:4000/api/promotions/${promo.id}`, {
         ...formData,
         code: formData.code?.trim().toUpperCase(),
         discount_value: Number(formData.discount_value),
