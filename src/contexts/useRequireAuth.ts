@@ -4,25 +4,30 @@ import { useAuth } from "./AuthContext"
 
 export function useRequireAuth() {
 
-  const { user, loading } = useAuth()
+  const { user, role, loading } = useAuth()
 
   const router = useRouter()
 
   useEffect(() => {
 
-    if (!loading && !user) {
-
-      router.replace("/AdminLogin")
-
+    if (!loading) {
+      if (!user) {
+        router.replace("/AdminLogin")
+      } else if (role !== "admin") {
+        // If logged in but not an admin, sign out and redirect
+        // This is a safety measure
+        router.replace("/AdminLogin")
+      }
     }
 
-  }, [user, loading, router])
+  }, [user, role, loading, router])
 
   return {
 
     user,
+    role,
     loading,
-    isAuthenticated: !!user
+    isAuthenticated: !!user && role === "admin"
 
   }
 
