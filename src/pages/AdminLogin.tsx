@@ -2,6 +2,7 @@ import Image from "next/image"
 import { useState } from "react"
 import { useRouter } from "next/router"
 import { supabase } from "@/lib/supabase"
+import type { User } from "@supabase/supabase-js"
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("")
@@ -9,6 +10,26 @@ export default function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+
+  // Helper function to fetch user role
+  const fetchUserRole = async (user: User) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('role')
+        .or(`auth_user_id.eq.${user.id},email.eq.${user.email}`)
+        .maybeSingle()
+
+      if (error) {
+        console.error("Error fetching user role:", error)
+        return { data: null, error }
+      }
+      return { data, error: null }
+    } catch (err) {
+      console.error("Catch error fetching role:", err)
+      return { data: null, error: err }
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,16 +41,35 @@ export default function AdminLoginPage() {
 
     try {
       console.log("Attempting login for:", trimmedEmail)
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error: loginError } = await supabase.auth.signInWithPassword({
         email: trimmedEmail,
         password: passwordValue,
       })
 
-      if (error) {
-        console.error("Login error:", error)
-        setError(error.message)
+      if (loginError) {
+        console.error("Login error:", loginError)
+        setError(loginError.message)
         setIsLoading(false)
         return
+      }
+
+      // Check if user has admin role - trying both ID and Email match
+      if (data.user) {
+        const { data: roleData, error: roleError } = await fetchUserRole(data.user)
+
+        if (roleError || !roleData || roleData.role !== 'admin') {
+          console.error("Role verify failed:", { roleData, roleError })
+          await supabase.auth.signOut()
+          
+          if (!roleData && !roleError) {
+            setError("ไม่พบข้อมูลผู้ใช้ในตาราง users กรุณาตรวจสอบว่าได้สร้าง Profile ให้ Admin แล้ว")
+          } else {
+            setError(`คุณไม่มีสิทธิ์เข้าถึงระบบแอดมิน (Role: ${roleData?.role || 'None'})`)
+          }
+          
+          setIsLoading(false)
+          return
+        }
       }
 
       console.log("Login successful:", data.user?.email)

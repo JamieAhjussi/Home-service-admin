@@ -4,11 +4,13 @@ import type { User, Session } from "@supabase/supabase-js"
 
 type AuthContextType = {
   user: User | null
+  role: string | null
   loading: boolean
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  role: null,
   loading: true,
 })
 
@@ -19,7 +21,27 @@ export const AuthProvider = ({
 }) => {
 
   const [user, setUser] = useState<User | null>(null)
+  const [role, setRole] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const fetchUserRole = async (user: User) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('role')
+        .or(`auth_user_id.eq.${user.id},email.eq.${user.email}`)
+        .maybeSingle()
+
+      if (error) {
+        console.error("AuthContext: Error fetching user role:", error)
+        return null
+      }
+      return data?.role || null
+    } catch (err) {
+      console.error("AuthContext: Catch error fetching role:", err)
+      return null
+    }
+  }
 
   useEffect(() => {
 
@@ -33,7 +55,16 @@ export const AuthProvider = ({
 
       if (!mounted) return
 
-      setUser(data.session?.user ?? null)
+      const currentUser = data.session?.user ?? null
+      setUser(currentUser)
+      
+      if (currentUser) {
+        const userRole = await fetchUserRole(currentUser)
+        if (mounted) setRole(userRole)
+      } else {
+        setRole(null)
+      }
+      
       setLoading(false)
     }
 
@@ -44,11 +75,20 @@ export const AuthProvider = ({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(
-      (_event: any, session: Session | null) => {
+      async (_event: any, session: Session | null) => {
 
         if (!mounted) return
 
-        setUser(session?.user ?? null)
+        const currentUser = session?.user ?? null
+        setUser(currentUser)
+        
+        if (currentUser) {
+          const userRole = await fetchUserRole(currentUser)
+          if (mounted) setRole(userRole)
+        } else {
+          setRole(null)
+        }
+        
         setLoading(false)
       }
     )
@@ -64,7 +104,7 @@ export const AuthProvider = ({
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, role, loading }}>
       {children}
     </AuthContext.Provider>
   )

@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { LayoutGrid, ClipboardList, Ticket, LogOut } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 const Sidebar = () => {
   const router = useRouter();
@@ -25,6 +26,17 @@ const Sidebar = () => {
       icon: <Ticket size={22} strokeWidth={1.5} />,
     },
   ];
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      router.push("/AdminLogin");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      // Fallback redirect
+      router.push("/AdminLogin");
+    }
+  };
 
   return (
     <div className="w-[240px] h-screen bg-blue-950 flex flex-col font-prompt shrink-0">
@@ -70,10 +82,7 @@ const Sidebar = () => {
       {/* Logout Section */}
       <div className="pb-10 pt-4">
         <button 
-          onClick={() => {
-            // Handle logout logic here
-            router.push("/AdminLogin");
-          }}
+          onClick={handleLogout}
           className="flex items-center gap-4 px-6 py-4 text-blue-200 hover:text-white w-full transition-colors cursor-pointer"
         >
           <LogOut size={22} strokeWidth={1.5} />

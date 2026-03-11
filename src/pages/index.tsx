@@ -1,15 +1,18 @@
 import { useAuth } from "@/contexts/AuthContext";
 import AdminLoginPage from "./AdminLogin";
 import { supabase } from "@/lib/supabase";
-import AdminCategory from "./AdminCategory";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { LogOut } from "lucide-react";
 
 
 export default function Home() {
   const { user, loading } = useAuth();
+  const router = useRouter();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    router.push("/AdminLogin");
   };
 
   if (loading) {
@@ -34,7 +37,7 @@ export default function Home() {
           </div>
           <button
             onClick={handleLogout}
-            className="px-4 py-2 bg-white border border-red-200 text-red-600 rounded-md hover:bg-red-50 transition-colors"
+            className="px-4 py-2 bg-white border border-red-200 text-red-600 rounded-md hover:bg-red-50 transition-colors cursor-pointer"
           >
             ออกจากระบบ
           </button>
@@ -44,9 +47,8 @@ export default function Home() {
           <div className="bg-white p-6 rounded-lg shadow-sm border border-[#E4E7EC]">
             <h2 className="text-xl font-semibold mb-4 text-[#0E1B3E]">จัดการข้อมูล</h2>
             <p className="text-gray-600 mb-4">คุณสามารถเพิ่ม แก้ไข และลบข้อมูลหมวดหมู่และบริการได้ที่หน้าแอดมิน</p>
-            {/* We will add links here as more pages are developed */}
             <div className="flex gap-4">
-              <Link href="/AdminService">
+              <Link href="/AdminCategory">
                 <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer">
                   เข้าสู่หน้าจัดการ
                 </button>
