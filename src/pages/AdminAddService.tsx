@@ -5,17 +5,12 @@ import { ImagePlus, GripVertical, Plus, ChevronDown } from "lucide-react";
 import axios from "@/lib/axios";
 import { Loader2 } from "lucide-react";
 
-
-// ใช้ axios instance จาก @/lib/axios แทนการกำหนด API_URL เอง
-
-// Type สำหรับ Category ที่ดึงมาจาก API
 interface Category {
   id: number;
   name: string;
   name_th: string;
 }
 
-// Type สำหรับ Sub-service ที่จะใช้ใน state
 interface SubService {
   id: number;
   name: string;
@@ -24,27 +19,24 @@ interface SubService {
 }
 
 const AdminAddService = () => {
-  const [serviceName, setServiceName] = useState(""); // State สำหรับชื่อบริการ
-  const [categoryId, setCategoryId] = useState(""); // State สำหรับหมวดหมู่ที่เลือก
-  const [categories, setCategories] = useState<Category[]>([]); // State สำหรับเก็บหมวดหมู่ที่ดึงมาจาก API
-  const [imageFile, setImageFile] = useState<File | null>(null); // State สำหรับเก็บไฟล์รูปภาพที่อัพโหลด
-  const [imagePreview, setImagePreview] = useState<string>(""); // State สำหรับเก็บ URL ของรูปภาพที่แสดงตัวอย่าง
+  const [serviceName, setServiceName] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
   const [subServices, setSubServices] = useState<SubService[]>([
     { id: 1, name: "", price: "", unit: "" },
     { id: 2, name: "", price: "", unit: "" },
-  ]); // State สำหรับเก็บรายการบริการย่อย
-  const [isSubmitting, setIsSubmitting] = useState(false); // State สำหรับแสดงสถานะการส่งข้อมูล
-  const [errors, setErrors] = useState<string[]>([]); // State สำหรับเก็บข้อความแสดงข้อผิดพลาด
+  ]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
 
-  const fileInputRef = useRef<HTMLInputElement>(null); // Ref สำหรับ input อัพโหลดไฟล์
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ฟังก์ชันสำหรับดึงหมวดหมู่จาก API เมื่อ component ถูก mount
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const { data } = await axios.get<Category[]>(
-          "/categories",
-        );
+        const { data } = await axios.get<Category[]>("/categories");
         setCategories(data);
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -54,18 +46,16 @@ const AdminAddService = () => {
     fetchCategories();
   }, []);
 
-  // เช็คขนาดไฟล์ที่อัพโหลดไม่เกิน 5MB และแสดงตัวอย่างรูปภาพ
   const handleImageChange = (file: File) => {
     if (file.size > 5 * 1024 * 1024) {
       setErrors(["รูปภาพต้องมีขนาดไม่เกิน 5MB"]);
       return;
     }
     setImageFile(file);
-    setImagePreview(URL.createObjectURL(file)); // สร้าง URL ชั่วคราวสำหรับแสดงตัวอย่างรูปภาพ
-    setErrors([]); // ล้างข้อความแสดงข้อผิดพลาด
+    setImagePreview(URL.createObjectURL(file));
+    setErrors([]);
   };
 
-  // Drag and Drop สำหรับอัพโหลดรูปภาพ
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
@@ -74,7 +64,6 @@ const AdminAddService = () => {
     }
   };
 
-  // ฟังก์ชันสำหรับเพิ่มรายการบริการย่อยใหม่
   const addSubService = () => {
     setSubServices([
       ...subServices,
@@ -82,12 +71,10 @@ const AdminAddService = () => {
     ]);
   };
 
-  // ฟังก์ชันสำหรับลบรายการบริการย่อยตาม id
   const removeSubService = (id: number) => {
     setSubServices(subServices.filter((item) => item.id !== id));
   };
 
-  // ฟังก์ชันสำหรับอัพเดตรายการบริการย่อยตาม id
   const updateSubService = (
     id: number,
     field: keyof SubService,
@@ -103,7 +90,6 @@ const AdminAddService = () => {
   const handleSubmit = async () => {
     setErrors([]);
 
-    // Client-side validation เบื้องต้น (backend จะ validate ซ้ำอีกครั้ง)
     const validationErrors: string[] = [];
     if (!serviceName.trim()) validationErrors.push("กรุณากรอกชื่อบริการ");
     if (!categoryId) validationErrors.push("กรุณาเลือกหมวดหมู่");
@@ -129,16 +115,11 @@ const AdminAddService = () => {
       return;
     }
 
-    // สร้าง FormData เพราะ request มีทั้ง text และ file
-    // FormData คือ format ที่ใช้ส่ง multipart/form-data ซึ่งเหมาะสำหรับการส่งไฟล์
     const formData = new FormData();
     formData.append("name", serviceName.trim());
     formData.append("category_id", categoryId);
-    formData.append("imageFile", imageFile!); // ! เพราะเราตรวจสอบแล้วว่า imageFile ไม่เป็น null
+    formData.append("imageFile", imageFile!);
 
-    // items ต้องแปลงเป็น JSON string ก่อนส่ง
-    // เพราะ FormData ส่งได้แค่ string หรือ file
-    // backend จะรับ string นี้แล้วแปลงกลับเป็น object ด้วย JSON.parse ใน middleware
     const itemsPayload = subServices.map((item) => ({
       name: item.name.trim(),
       price_per_unit: Number(item.price.trim()),
@@ -153,7 +134,7 @@ const AdminAddService = () => {
           "Content-Type": "multipart/form-data",
         },
       });
-      window.location.href = "/AdminService"; // เปลี่ยนเส้นทางกลับไปหน้าแอดมินบริการหลังจากสร้างสำเร็จ
+      window.location.href = "/AdminService";
     } catch (error: any) {
       const backendErrors = error.response?.data?.errors;
       if (backendErrors) {
@@ -169,7 +150,6 @@ const AdminAddService = () => {
   return (
     <AdminLayout>
       <div className="flex flex-col h-full font-prompt">
-        {/* Top Header Section */}
         <header className="bg-white px-10 py-5 flex items-center justify-between border-b border-gray-200">
           <h1 className="text-[20px] font-semibold text-black">เพิ่มบริการ</h1>
           <div className="flex items-center gap-4">
@@ -179,7 +159,6 @@ const AdminAddService = () => {
             >
               ยกเลิก
             </Link>
-            {/* เพิ่ม onClick และ disabled ตอน submit */}
             <button
               onClick={handleSubmit}
               disabled={isSubmitting}
@@ -195,7 +174,6 @@ const AdminAddService = () => {
         </header>
 
         <main className="p-10 space-y-10">
-          {/* แสดง error messages */}
           {errors.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-md p-4">
               {errors.map((error, index) => (
@@ -208,12 +186,10 @@ const AdminAddService = () => {
 
           <div className="bg-white rounded-md border border-gray-200 p-10 shadow-sm space-y-10">
             <div className="space-y-8">
-              {/* Service Name */}
               <div className="flex items-center gap-10">
                 <label className="text-[#646C80] text-[16px] w-35">
                   ชื่อบริการ<span className="text-red-500">*</span>
                 </label>
-                {/* เพิ่ม value และ onChange */}
                 <input
                   type="text"
                   value={serviceName}
@@ -222,13 +198,11 @@ const AdminAddService = () => {
                 />
               </div>
 
-              {/* Category Dropdown */}
               <div className="flex items-center gap-10">
                 <label className="text-[#646C80] text-[16px] w-35">
                   หมวดหมู่<span className="text-red-500">*</span>
                 </label>
                 <div className="relative w-full max-w-110">
-                  {/* เปลี่ยนจาก mock data → render จาก categories state */}
                   <select
                     value={categoryId}
                     onChange={(e) => setCategoryId(e.target.value)}
@@ -248,13 +222,11 @@ const AdminAddService = () => {
                 </div>
               </div>
 
-              {/* Image Upload */}
               <div className="flex items-start gap-10">
                 <label className="text-[#646C80] text-[16px] w-35 pt-4">
                   รูปภาพ<span className="text-red-500">*</span>
                 </label>
                 <div className="w-full max-w-110 flex flex-col gap-2">
-                  {/* เพิ่ม drag & drop, click to upload, และ preview */}
                   <div
                     onClick={() => fileInputRef.current?.click()}
                     onDrop={handleDrop}
@@ -262,7 +234,6 @@ const AdminAddService = () => {
                     className="w-full h-45 border-2 border-dashed border-gray-200 rounded-md flex flex-col items-center justify-center gap-4 hover:bg-gray-50 transition-colors cursor-pointer group overflow-hidden"
                   >
                     {imagePreview ? (
-                      // แสดง preview รูปที่เลือก
                       <img
                         src={imagePreview}
                         alt="preview"
@@ -287,7 +258,6 @@ const AdminAddService = () => {
                       </>
                     )}
                   </div>
-                  {/* ✨ input file ซ่อนไว้ เปิดผ่านการคลิก drop zone */}
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -307,7 +277,6 @@ const AdminAddService = () => {
 
             <hr className="border-gray-100" />
 
-            {/* Sub-services Section */}
             <div className="space-y-6">
               <h2 className="text-[#646C80] text-[16px] font-medium">
                 รายการบริการย่อย
@@ -326,7 +295,6 @@ const AdminAddService = () => {
                         <label className="text-[#646C80] text-[14px]">
                           ชื่อรายการ
                         </label>
-                        {/* เพิ่ม value และ onChange ทุก input */}
                         <input
                           type="text"
                           value={item.name}
