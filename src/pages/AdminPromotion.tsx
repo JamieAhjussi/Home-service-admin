@@ -31,7 +31,7 @@ const AdminPromotion = () => {
   const fetchPromotions = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/promotions`);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/promotions`);
       setPromotions(response.data);
     } catch (err) {
       console.error("Failed to fetch promotions:", err);
@@ -43,7 +43,7 @@ const AdminPromotion = () => {
   const confirmDelete = async () => {
     if (!promoToDelete) return;
     try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/promotions/${promoToDelete.id}`);
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/promotions/${promoToDelete.id}`);
       setPromotions(promotions.filter((p) => p.id !== promoToDelete.id));
     } catch (error) {
       console.error("Error deleting promotion:", error);
