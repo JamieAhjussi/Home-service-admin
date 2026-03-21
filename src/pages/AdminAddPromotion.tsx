@@ -39,7 +39,7 @@ const AdminAddPromotion = () => {
 
     try {
       setIsSubmitting(true);
-      await axios.post("http://localhost:4000/api/promotions",{
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/promotions`,{
         code: formData.code.trim().toUpperCase(), // บังคับตัวพิมพ์ใหญ่
         type: formData.type,
         discount_value: Number(formData.discount_value),
