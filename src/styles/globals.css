@@ -1,6 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -116,6 +114,10 @@
 
 /* Typography */
 @layer utilities {
+  .font-prompt {
+    font-family: Prompt, sans-serif;
+  }
+  
   .headline-1 {
     font-family: Prompt, sans-serif;
     font-weight: 500;
